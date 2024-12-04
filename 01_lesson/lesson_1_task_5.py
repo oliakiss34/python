@@ -1,4 +1,4 @@
-def print_number(num): print(num)
+def print_number(num): print(num,end="")
 print_number(8) 
 print_number(8) 
 print_number(0) 
