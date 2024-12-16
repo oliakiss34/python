@@ -1,3 +1,3 @@
-num_set = list(range(18, 14, 10, 6, 2))
+num_set = list(range(2,6,10,14,18))
 print(num_set)
     #Range
