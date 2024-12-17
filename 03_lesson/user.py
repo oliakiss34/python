@@ -5,13 +5,13 @@ class User:
         self.last_name = last_name
 
         def first_name(self):
-            return self.first_name
+            return (self.first_name)
         
         def last_name(self):
-            return self.last_name
+            return (self.last_name)
          
         def first_name_last_name(self):
-        return f"name:{self.first_name}, last:{self.last_name}"
+            return ("name:{self.first_name}, last:{self.last_name}")
         
         first_name=olya
         last_name=savina
