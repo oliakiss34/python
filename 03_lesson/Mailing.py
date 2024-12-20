@@ -5,10 +5,3 @@ class Mailing:
         self.faddress = from_address
         self.cost = cost
         self.track = track
-    
-    def to_address(self):
-        print(self.to_address)
-
-    
-    def from_address(self):
-        print(self.from_address)
