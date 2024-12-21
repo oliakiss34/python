@@ -9,7 +9,7 @@ class User:
     def print_last_name(self):
         print(self.last_name)
          
-    def print_first_name_last_name(self):
+    def print_full_name(self):
         print (f"name: {self.first_name}, last: {self.last_name}")
         
        
