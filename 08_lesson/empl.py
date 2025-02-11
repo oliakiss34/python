@@ -1,67 +1,88 @@
+import pytest
 import requests
 
+# Базовый URL API
+BASE_URL = "https://yougile.com"
 
-class Company:
+# Токен для авторизации (замени на твой реальный токен)
+API_TOKEN = "твой токен"
 
-    def __init__(self, url):
-        self.url = url
+# Заголовки для запросов
+HEADERS = {
+    'Authorization': f'Bearer {API_TOKEN}',
+    'Content-Type': 'application/json'
+}
 
-    def get_token(self, user='bloom', password='fire-fairy'):
-        creds = {
-            'username': user,
-            'password': password
-        }
-        resp = requests.post(f"{self.url}/auth/login", json=creds)
-        return resp.json()["userToken"]
 
-    def create_company(self, name, description=''):
-        company = {
-            "name": name,
-            "description": description
-        }
-        my_headers = {}
-        my_headers["x-client-token"] = self.get_token()
-        resp = requests.post(f"{self.url}/company", json=company, headers=my_headers)
-        return resp.json()
+# Фикстура для создания проекта, который будет использоваться в тестах
+@pytest.fixture(scope="session")
+def create_project():
+    project_data = {
+         'title': 'Новый проект',
+    }
+    response = requests.post( BASE_URL + '/api-v2/projects', json=project_data, headers=HEADERS)
+    assert response.status_code == 201
+    project_id = response.json()["id"]
+    yield project_id
+    # Удаление проекта после выполнения теста
+    #requests.delete(BASE_URL + '/projects/{project_id}', headers=HEADERS)
 
-    def get_list_employee(self, id):
-        my_params = {
-            "company": id
-        }
-        resp = requests.get(f"{self.url}/employee", params=my_params)
-        return resp.json()
+# Позитивный тест для создания проекта
+def test_create_project_positive():
+    project_data = {
+        'title': 'Новый проект',
+    }
+    response = requests.post(BASE_URL + '/api-v2/projects', json=project_data, headers=HEADERS)
+    assert response.status_code == 201
+    assert "id" in response.json()
 
-    def get_employee_by_id(self, id_employee):
-        resp = requests.get(f"{self.url}/employee/{id_employee}")
-        return resp.json()
+# Негативный тест для создания проекта (отсутствие обязательного поля)
+def test_create_project_negative():
+    project_data = {
+        "users": "This project has no title"
+    }
+    response = requests.post(BASE_URL + '/api-v2/projects', json=project_data, headers=HEADERS)
+    assert response.status_code == 400
 
-    def add_new_employee(self, new_id, name, last_name):
-        employee = {
-            "id": 1,
-            "firstName": name,
-            "lastName": last_name,
-            "middleName": "-",
-            "companyId": new_id,
-            "email": "test@test.ru",
-            "url": "string",
-            "phone": "89999999999",
-            "birthdate": "2024-06-12T18:54:13.783Z",
-            "isActive": 'true'
-        }
+# Позитивный тест для получения списка проектов
+def test_get_projects_positive():
+    response = requests.get(BASE_URL + '/api-v2/projects',headers=HEADERS)
+    assert response.status_code == 200
+    #assert isinstance(response.json(), list)
+    assert "content" in response.json()
+    assert isinstance(response.json()["content"], list)
 
-        my_headers = {}
-        my_headers["x-client-token"] = self.get_token()
-        resp = requests.post(f"{self.url}/employee", headers=my_headers, json=employee)
-        return resp.json()
+# Позитивный тест для получения проекта по id
+def test_get_project_positive(create_project):
+    project_id = create_project
+    response = requests.get(BASE_URL + f'/api-v2/projects/{project_id}', headers=HEADERS)
+    assert response.status_code == 200
+    assert response.json()["id"] == project_id
+    assert "id" in response.json()
 
-    def update_employee_info(self, id_employee, last_name, email):
-        user_info = {
-            "lastName": last_name,
-            "email": email,
-            "isActive": True
-        }
 
-        my_headers = {}
-        my_headers["x-client-token"] = self.get_token()
-        resp = requests.patch(f"{self.url}/employee/{id_employee}", headers=my_headers, json=user_info)
-        return resp.json()
+# Негативный тест для получения несуществующего проекта
+def test_get_project_negative():
+    non_existent_id = "non_existent_id"
+    response = requests.get(BASE_URL + f'/api-v2/projects/{non_existent_id}', headers=HEADERS)
+    assert response.status_code == 404
+
+# Позитивный тест для обновления проекта
+def test_update_project_positive(create_project):
+    project_id = create_project
+    update_data = {
+        'title': 'Обновление проекта'
+    }
+    response = requests.put(BASE_URL + f'/api-v2/projects/{project_id}', headers=HEADERS)
+    assert response.status_code == 200
+    assert "id" in response.json()
+
+
+# Негативный тест для обновления проекта (отсутствие обязательного поля)
+def test_update_project_negative(create_project):
+    project_id = create_project
+    update_data = {
+        'title': 'Обновление проекта'
+    }
+    response = requests.put(BASE_URL + f'/api-v2/projects/',  headers=HEADERS)
+    assert response.status_code == 404
